@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Archivo Black";
+  --font-body: "Sora";
+  --font-mono: "JetBrains Mono";
+
+  /* Light (paper) — the default theme. */
+  --c-base: 232 228 218;
+  --c-base-card: 222 217 205;
+  --c-bone: 18 16 15;
+  --c-bone-dim: 60 56 54;
+  --c-bone-faint: 104 98 94;
+  --c-accent: 226 92 60; /* warm red-orange ink */
+  --c-amber: 226 168 60;
+}
+
+[data-theme="dark"] {
+  --c-base: 18 16 15;
+  --c-base-card: 30 28 26;
+  --c-bone: 236 232 222;
+  --c-bone-dim: 170 164 154;
+  --c-bone-faint: 120 114 106;
+  --c-accent: 236 110 78;
+  --c-amber: 236 180 80;
+}
+
+body {
+  background: rgb(var(--c-base));
+  color: rgb(var(--c-bone));
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* Halftone dot field (multiply on paper, screen on the dark theme). */
+.halftone {
+  background-image: radial-gradient(rgb(var(--c-bone) / 0.6) 1px, transparent 1.4px);
+  background-size: 6px 6px;
+  mix-blend-mode: multiply;
+}
+[data-theme="dark"] .halftone {
+  mix-blend-mode: screen;
+}
