@@ -23,14 +23,12 @@ export async function GET(req: Request) {
   const extParam = url.searchParams.get("ext") as Ext;
   const ext: Ext = (Object.keys(EXTS) as Ext[]).includes(extParam) ? extParam : "png";
 
-  // Forward the content fields to the bare render page.
-  const params = new URLSearchParams({
-    channel: channel.id,
-    still,
-    thema: theme,
-    title: url.searchParams.get("title") || "Titill",
-  });
-  for (const k of ["subtitle", "date", "img"] as const) {
+  // Forward the content + style fields to the bare render page.
+  const params = new URLSearchParams({ channel: channel.id, still, thema: theme });
+  for (const k of [
+    "title", "subtitle", "date", "img", "event", "sponsors",
+    "base", "ink", "accent", "accent2", "fdisp", "fbody",
+  ] as const) {
     const v = url.searchParams.get(k);
     if (v) params.set(k, v);
   }

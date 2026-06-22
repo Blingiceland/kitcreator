@@ -1,26 +1,28 @@
 /**
- * The frame every template renders inside. It applies the active style: the
- * preset's palette + fonts are injected as CSS variables (so every `bg-base` /
- * `text-bone` / `font-display` resolves to the chosen look), texture is
- * conditional, and the sponsor strips + safe-area inset are reserved.
+ * The frame every template renders inside. Applies the resolved style: palette +
+ * fonts are injected as CSS variables, texture is conditional, the sponsor
+ * strips + safe-area inset are reserved. data-theme follows the ground's
+ * luminance so grain blends correctly on light vs dark palettes.
  */
 import * as React from "react";
-import type { ChannelDef, StylePreset } from "@/lib/kit";
+import type { ChannelDef, ResolvedStyle } from "@/lib/kit";
+import { luminance } from "@/lib/colors";
 import { Filters, Grain, Halftone } from "@/components/primitives";
 import { SponsorTop, SponsorBottom } from "@/components/sponsors";
 
 export function TemplateFrame({
   channel,
-  preset,
-  theme,
+  style,
+  sponsors,
   children,
 }: {
   channel: ChannelDef;
-  preset: StylePreset;
-  theme: "light" | "dark";
+  style: ResolvedStyle;
+  sponsors: string[];
   children: React.ReactNode;
 }) {
-  const p = theme === "dark" ? preset.dark : preset.light;
+  const p = style.palette;
+  const isDark = luminance(p.base) < 128;
 
   const safe = channel.safeInsetPct
     ? {
@@ -39,24 +41,24 @@ export function TemplateFrame({
     "--c-bone-faint": p.inkFaint,
     "--c-accent": p.accent,
     "--c-amber": p.accent2,
-    "--font-display": `'${preset.fonts.display}'`,
-    "--font-body": `'${preset.fonts.body}'`,
-    "--font-mono": `'${preset.fonts.mono ?? preset.fonts.body}'`,
+    "--font-display": `'${style.fonts.display}'`,
+    "--font-body": `'${style.fonts.body}'`,
+    "--font-mono": `'${style.fonts.mono}'`,
   } as React.CSSProperties;
 
   return (
     <div
       data-frame
-      data-theme={theme === "dark" ? "dark" : undefined}
+      data-theme={isDark ? "dark" : undefined}
       className="relative flex flex-col overflow-hidden bg-base text-bone"
       style={{ width: channel.w, height: channel.h, containerType: "size", ...vars, ...safe }}
     >
       <Filters />
-      <SponsorTop />
+      <SponsorTop sponsors={sponsors} />
       <div className="relative flex-1 overflow-hidden">{children}</div>
-      <SponsorBottom />
-      {preset.texture === "grain" && <Halftone className="z-40 opacity-[0.16]" />}
-      {preset.texture !== "none" && <Grain soft={preset.texture === "soft"} />}
+      <SponsorBottom sponsors={sponsors} />
+      {style.texture === "grain" && <Halftone className="z-40 opacity-[0.16]" />}
+      {style.texture !== "none" && <Grain soft={style.texture === "soft"} />}
     </div>
   );
 }

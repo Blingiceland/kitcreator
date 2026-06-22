@@ -7,6 +7,8 @@
 // In v1+ this becomes per-tenant data.
 // ---------------------------------------------------------------------------
 
+import { mix } from "./colors";
+
 export type ChannelKind = "social" | "print" | "screen";
 
 /** One output size / channel. */
@@ -100,18 +102,74 @@ export const PRESETS: StylePreset[] = [
   },
 ];
 
-export interface BrandKit {
-  name: string;
-  tagline: string;
-  /** Sponsor wordmarks (v0 renders these as text; later: uploaded logo art). */
-  sponsors: string[];
+/** Curated font choices (all loaded globally in layout). */
+export const FONTS: { family: string; label: string }[] = [
+  { family: "Archivo Black", label: "Archivo Black" },
+  { family: "Space Grotesk", label: "Space Grotesk" },
+  { family: "Fraunces", label: "Fraunces (serif)" },
+  { family: "Sora", label: "Sora" },
+  { family: "Inter", label: "Inter" },
+  { family: "JetBrains Mono", label: "JetBrains Mono" },
+];
+
+/** The four brand colours a project sets; the rest of the palette is derived. */
+export interface BrandColors {
+  base: string;
+  ink: string;
+  accent: string;
+  accent2: string;
 }
 
-export const BRAND: BrandKit = {
-  name: "Skemmtilegt",
-  tagline: "Eitt upphlað — allt settið.",
-  sponsors: ["Rás 2", "Thule", "Four Roses"],
-};
+/** Expand the four chosen colours into the full palette the templates use. */
+export function fullPalette(c: BrandColors): Palette {
+  return {
+    base: c.base,
+    baseCard: mix(c.base, c.ink, 0.06),
+    ink: c.ink,
+    inkDim: mix(c.ink, c.base, 0.4),
+    inkFaint: mix(c.ink, c.base, 0.62),
+    accent: c.accent,
+    accent2: c.accent2,
+  };
+}
+
+/** A fully-resolved look handed to the frame/template at render time. */
+export interface ResolvedStyle {
+  palette: Palette;
+  fonts: { display: string; body: string; mono: string };
+  texture: TextureKind;
+  boxStyle: BoxStyle;
+  titleCase: "upper" | "normal";
+}
+
+/** Resolve a preset + optional palette/font overrides into a concrete style. */
+export function resolveStyle(opts: {
+  presetId: string;
+  theme: "light" | "dark";
+  colors?: BrandColors;
+  fonts?: { display: string; body: string };
+}): ResolvedStyle {
+  const p = getPreset(opts.presetId);
+  const palette = opts.colors ? fullPalette(opts.colors) : opts.theme === "dark" ? p.dark : p.light;
+  return {
+    palette,
+    fonts: {
+      display: opts.fonts?.display ?? p.fonts.display,
+      body: opts.fonts?.body ?? p.fonts.body,
+      mono: p.fonts.mono ?? opts.fonts?.body ?? p.fonts.body,
+    },
+    texture: p.texture,
+    boxStyle: p.boxStyle,
+    titleCase: p.titleCase,
+  };
+}
+
+/** Seed brand colours from a preset+theme (starting point for the pickers). */
+export function seedColors(presetId: string, theme: "light" | "dark"): BrandColors {
+  const p = getPreset(presetId);
+  const pal = theme === "dark" ? p.dark : p.light;
+  return { base: pal.base, ink: pal.ink, accent: pal.accent, accent2: pal.accent2 };
+}
 
 export const TEMPLATES = ["image-led"] as const;
 export type TemplateId = (typeof TEMPLATES)[number];
