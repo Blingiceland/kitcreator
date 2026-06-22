@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Download } from "lucide-react";
-import { CHANNELS, BRAND, type ChannelDef } from "@/lib/kit";
+import { CHANNELS, BRAND, PRESETS, getPreset, type ChannelDef, type StylePreset } from "@/lib/kit";
 import { TemplateFrame } from "@/components/template-frame";
 import { ImageLed } from "@/components/templates/image-led";
 
@@ -14,14 +14,16 @@ export default function Builder() {
   const [title, setTitle] = React.useState("Bandið þitt");
   const [subtitle, setSubtitle] = React.useState("Dillon · Reykjavík");
   const [date, setDate] = React.useState("4. júlí 2026");
+  const [stillId, setStillId] = React.useState(PRESETS[0].id);
   const [theme, setTheme] = React.useState<Theme>("light");
   const [previewId, setPreviewId] = React.useState(CHANNELS[0].id);
 
+  const preset = getPreset(stillId);
   const previewChannel = CHANNELS.find((c) => c.id === previewId) ?? CHANNELS[0];
   const data = { img: TEST_IMG, title, subtitle, date };
 
   function downloadUrl(channel: ChannelDef, ext: "png" | "jpeg" | "pdf") {
-    const p = new URLSearchParams({ template: "image-led", channel: channel.id, thema: theme, ext, title });
+    const p = new URLSearchParams({ template: "image-led", channel: channel.id, still: stillId, thema: theme, ext, title });
     if (subtitle) p.set("subtitle", subtitle);
     if (date) p.set("date", date);
     return `/api/render?${p.toString()}`;
@@ -41,6 +43,14 @@ export default function Builder() {
           <Field label="Titill" value={title} onChange={setTitle} />
           <Field label="Undirtitill" value={subtitle} onChange={setSubtitle} />
           <Field label="Dagsetning" value={date} onChange={setDate} />
+
+          <Control label="Lúkk">
+            {PRESETS.map((pr) => (
+              <Pill key={pr.id} active={stillId === pr.id} onClick={() => setStillId(pr.id)}>
+                {pr.name}
+              </Pill>
+            ))}
+          </Control>
 
           <Control label="Þema">
             <Pill active={theme === "light"} onClick={() => setTheme("light")}>Ljóst</Pill>
@@ -62,7 +72,7 @@ export default function Builder() {
 
         {/* Preview */}
         <div className="flex justify-center lg:justify-end">
-          <Preview channel={previewChannel} theme={theme} data={data} />
+          <Preview channel={previewChannel} preset={preset} theme={theme} data={data} />
         </div>
       </div>
 
@@ -139,14 +149,24 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-function Preview({ channel, theme, data }: { channel: ChannelDef; theme: Theme; data: { img: string; title: string; subtitle: string; date: string } }) {
+function Preview({
+  channel,
+  preset,
+  theme,
+  data,
+}: {
+  channel: ChannelDef;
+  preset: StylePreset;
+  theme: Theme;
+  data: { img: string; title: string; subtitle: string; date: string };
+}) {
   const previewW = 340;
   const scale = previewW / channel.w;
   return (
     <div className="shrink-0 border-2 border-bone" style={{ width: channel.w * scale, height: channel.h * scale }}>
       <div style={{ width: channel.w, height: channel.h, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-        <TemplateFrame channel={channel} theme={theme}>
-          <ImageLed data={data} />
+        <TemplateFrame channel={channel} preset={preset} theme={theme}>
+          <ImageLed data={data} preset={preset} />
         </TemplateFrame>
       </div>
     </div>

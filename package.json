@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "@fontsource/archivo-black": "^5.2.8",
+    "@fontsource/fraunces": "^5.2.9",
+    "@fontsource/inter": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/sora": "^5.2.8",
+    "@fontsource/space-grotesk": "^5.2.10",
     "@sparticuz/chromium": "^149.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",

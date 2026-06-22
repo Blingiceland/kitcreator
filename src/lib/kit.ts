@@ -1,8 +1,10 @@
 // ---------------------------------------------------------------------------
 // Kit configuration — the single hardcoded "project" for v0.
 //
-// In v1+ this becomes per-tenant data (brand kit + channels chosen by each
-// project owner). For v0 it lives in code: one demo brand + a fixed channel set.
+// The LOOK is a configurable layer (StyleConfig): a project picks a preset and
+// (later) tweaks palette/fonts/logos. Templates read the active style instead of
+// hardcoding one aesthetic — this is what makes it a product, not a one-off.
+// In v1+ this becomes per-tenant data.
 // ---------------------------------------------------------------------------
 
 export type ChannelKind = "social" | "print" | "screen";
@@ -14,17 +16,34 @@ export interface ChannelDef {
   w: number;
   h: number;
   kind: ChannelKind;
-  /** Capture deviceScaleFactor (print upscales for DPI). */
   scale: number;
-  /** Safe-area inset (% of w/h) for placements FB crops (e.g. page cover). */
   safeInsetPct?: { x: number; y: number };
 }
 
-export interface BrandKit {
+/** A colour set (rgb triplets, e.g. "232 228 218"), one per theme. */
+export interface Palette {
+  base: string;
+  baseCard: string;
+  ink: string;
+  inkDim: string;
+  inkFaint: string;
+  accent: string;
+  accent2: string;
+}
+
+export type TextureKind = "grain" | "soft" | "none";
+export type BoxStyle = "stamp" | "flat" | "outline";
+
+/** A look: typography + texture + box treatment + light/dark palettes. */
+export interface StylePreset {
+  id: string;
   name: string;
-  tagline: string;
-  /** Sponsor wordmarks (v0 renders these as text; v1 swaps in logo art). */
-  sponsors: string[];
+  fonts: { display: string; body: string; mono?: string };
+  texture: TextureKind;
+  boxStyle: BoxStyle;
+  titleCase: "upper" | "normal";
+  light: Palette;
+  dark: Palette;
 }
 
 /** The fixed v0 channel set. Landscape and portrait both covered. */
@@ -37,18 +56,72 @@ export const CHANNELS: ChannelDef[] = [
   { id: "poster-a3", label: "Plakat · A3", w: 1240, h: 1754, kind: "print", scale: 2 },
 ];
 
+/** Look presets — each a distinct, ready-made aesthetic. */
+export const PRESETS: StylePreset[] = [
+  {
+    id: "silkscreen",
+    name: "Silkscreen",
+    fonts: { display: "Archivo Black", body: "Sora", mono: "JetBrains Mono" },
+    texture: "grain",
+    boxStyle: "stamp",
+    titleCase: "upper",
+    light: { base: "232 228 218", baseCard: "222 217 205", ink: "18 16 15", inkDim: "60 56 54", inkFaint: "104 98 94", accent: "226 92 60", accent2: "226 168 60" },
+    dark: { base: "18 16 15", baseCard: "30 28 26", ink: "236 232 222", inkDim: "170 164 154", inkFaint: "120 114 106", accent: "236 110 78", accent2: "236 180 80" },
+  },
+  {
+    id: "clean",
+    name: "Clean",
+    fonts: { display: "Space Grotesk", body: "Inter", mono: "Inter" },
+    texture: "none",
+    boxStyle: "flat",
+    titleCase: "normal",
+    light: { base: "248 248 246", baseCard: "240 240 237", ink: "24 24 27", inkDim: "90 90 96", inkFaint: "150 150 156", accent: "37 99 235", accent2: "16 185 129" },
+    dark: { base: "17 18 20", baseCard: "28 29 33", ink: "244 244 245", inkDim: "161 161 170", inkFaint: "113 113 122", accent: "96 165 250", accent2: "52 211 153" },
+  },
+  {
+    id: "editorial",
+    name: "Editorial",
+    fonts: { display: "Fraunces", body: "Inter", mono: "Inter" },
+    texture: "soft",
+    boxStyle: "outline",
+    titleCase: "normal",
+    light: { base: "245 242 235", baseCard: "236 232 223", ink: "26 22 20", inkDim: "92 84 78", inkFaint: "150 140 132", accent: "168 50 50", accent2: "196 138 60" },
+    dark: { base: "22 19 18", baseCard: "33 29 27", ink: "240 234 226", inkDim: "176 166 156", inkFaint: "128 120 112", accent: "214 92 84", accent2: "214 168 96" },
+  },
+  {
+    id: "neon",
+    name: "Neon / Night",
+    fonts: { display: "Space Grotesk", body: "JetBrains Mono", mono: "JetBrains Mono" },
+    texture: "none",
+    boxStyle: "flat",
+    titleCase: "upper",
+    light: { base: "245 245 250", baseCard: "235 235 245", ink: "18 18 28", inkDim: "90 90 110", inkFaint: "150 150 170", accent: "0 170 150", accent2: "220 40 140" },
+    dark: { base: "10 10 18", baseCard: "20 20 32", ink: "235 235 245", inkDim: "150 150 170", inkFaint: "110 110 130", accent: "0 230 200", accent2: "255 60 160" },
+  },
+];
+
+export interface BrandKit {
+  name: string;
+  tagline: string;
+  /** Sponsor wordmarks (v0 renders these as text; later: uploaded logo art). */
+  sponsors: string[];
+}
+
 export const BRAND: BrandKit = {
   name: "Skemmtilegt",
   tagline: "Eitt upphlað — allt settið.",
   sponsors: ["Rás 2", "Thule", "Four Roses"],
 };
 
-/** Templates available in v0 (just one layout for now). */
 export const TEMPLATES = ["image-led"] as const;
 export type TemplateId = (typeof TEMPLATES)[number];
 
 export function getChannel(id: string | undefined): ChannelDef | undefined {
   return CHANNELS.find((c) => c.id === id);
+}
+
+export function getPreset(id: string | undefined): StylePreset {
+  return PRESETS.find((p) => p.id === id) ?? PRESETS[0];
 }
 
 export function isTemplate(id: string | undefined): id is TemplateId {

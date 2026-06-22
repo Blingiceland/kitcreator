@@ -1,9 +1,11 @@
 /**
- * Image-led layout — full-bleed photo with the title/date pinned, sitting inside
- * the frame's sponsor strips. Sizes in cqmin so one layout adapts to every
- * channel (square, portrait, landscape) without per-format tweaks.
+ * Image-led layout — full-bleed photo with the title/date pinned, inside the
+ * frame's sponsor strips. Reads the active preset for case + box treatment so
+ * the same layout reads silkscreen, clean, editorial or neon. Sizes in cqmin so
+ * one layout adapts to every channel.
  */
 import * as React from "react";
+import type { StylePreset } from "@/lib/kit";
 import { fitSize, plate } from "@/components/primitives";
 
 export interface TemplateData {
@@ -13,8 +15,18 @@ export interface TemplateData {
   date?: string;
 }
 
-export function ImageLed({ data }: { data: TemplateData }) {
+export function ImageLed({ data, preset }: { data: TemplateData; preset: StylePreset }) {
   const { img, title, subtitle, date } = data;
+  const caseClass = preset.titleCase === "upper" ? "uppercase" : "normal-case";
+
+  // Date chip treatment per look.
+  const chip =
+    preset.boxStyle === "stamp"
+      ? { className: "-rotate-1 bg-accent text-[color:rgb(var(--c-base))]", style: { ...plate("rgb(var(--c-bone))"), fontSize: "2.8cqmin" } }
+      : preset.boxStyle === "outline"
+        ? { className: "border-[0.3cqmin] border-accent text-accent", style: { fontSize: "2.6cqmin" } }
+        : { className: "bg-accent text-[color:rgb(var(--c-base))]", style: { fontSize: "2.6cqmin" } };
+
   return (
     <div className="absolute inset-0 flex flex-col">
       {/* Full-bleed photo + legibility wash */}
@@ -33,14 +45,14 @@ export function ImageLed({ data }: { data: TemplateData }) {
       <div className="relative z-10 mt-auto flex flex-col items-start gap-[2cqmin] p-[5cqmin]">
         {date && (
           <span
-            className="-rotate-1 bg-accent px-[2cqmin] py-[1cqmin] font-display uppercase leading-none text-[color:rgb(var(--c-base))]"
-            style={{ ...plate("rgb(var(--c-bone))"), fontSize: "2.8cqmin" }}
+            className={"font-display uppercase leading-none " + chip.className}
+            style={{ paddingInline: "2cqmin", paddingBlock: "1cqmin", ...chip.style }}
           >
             {date}
           </span>
         )}
         <h1
-          className="font-display uppercase leading-[0.85] text-bone"
+          className={"font-display leading-[0.86] text-bone " + caseClass}
           style={{ fontSize: `${fitSize(title, 17)}cqmin` }}
         >
           {title}
