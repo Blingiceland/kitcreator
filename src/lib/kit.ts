@@ -133,6 +133,12 @@ export function fullPalette(c: BrandColors): Palette {
   };
 }
 
+/** A sponsor: a wordmark (name) and/or an uploaded transparent logo (url). */
+export interface SponsorItem {
+  name?: string;
+  logo?: string;
+}
+
 /** A fully-resolved look handed to the frame/template at render time. */
 export interface ResolvedStyle {
   palette: Palette;
@@ -140,6 +146,32 @@ export interface ResolvedStyle {
   texture: TextureKind;
   boxStyle: BoxStyle;
   titleCase: "upper" | "normal";
+}
+
+/** Neutral, simple starting look (deliberately NOT the silkscreen preset). */
+export const DEFAULT_LOOK = {
+  colors: { base: "248 248 246", ink: "24 24 27", accent: "37 99 235", accent2: "16 185 129" } as BrandColors,
+  fonts: { display: "Space Grotesk", body: "Inter" },
+  texture: "none" as TextureKind,
+  boxStyle: "flat" as BoxStyle,
+  titleCase: "normal" as "upper" | "normal",
+};
+
+/** Build a resolved style straight from explicit knobs (what the wizard edits). */
+export function buildStyle(opts: {
+  colors: BrandColors;
+  fonts: { display: string; body: string };
+  texture: TextureKind;
+  boxStyle: BoxStyle;
+  titleCase: "upper" | "normal";
+}): ResolvedStyle {
+  return {
+    palette: fullPalette(opts.colors),
+    fonts: { display: opts.fonts.display, body: opts.fonts.body, mono: opts.fonts.body },
+    texture: opts.texture,
+    boxStyle: opts.boxStyle,
+    titleCase: opts.titleCase,
+  };
 }
 
 /** Resolve a preset + optional palette/font overrides into a concrete style. */

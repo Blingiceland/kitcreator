@@ -18,16 +18,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unknown template" }, { status: 404 });
   }
   const channel = getChannel(url.searchParams.get("channel") ?? "") ?? CHANNELS[0];
-  const still = url.searchParams.get("still") || "silkscreen";
-  const theme = url.searchParams.get("thema") === "dark" ? "dark" : "light";
   const extParam = url.searchParams.get("ext") as Ext;
   const ext: Ext = (Object.keys(EXTS) as Ext[]).includes(extParam) ? extParam : "png";
 
   // Forward the content + style fields to the bare render page.
-  const params = new URLSearchParams({ channel: channel.id, still, thema: theme });
+  const params = new URLSearchParams({ channel: channel.id });
   for (const k of [
-    "title", "subtitle", "date", "img", "event", "sponsors",
-    "base", "ink", "accent", "accent2", "fdisp", "fbody",
+    "title", "subtitle", "date", "img", "logo", "event", "sponsors",
+    "base", "ink", "accent", "accent2", "fdisp", "fbody", "tex", "box", "case",
   ] as const) {
     const v = url.searchParams.get(k);
     if (v) params.set(k, v);
@@ -63,7 +61,7 @@ export async function GET(req: Request) {
     return new NextResponse(body, {
       headers: {
         "Content-Type": EXTS[ext],
-        "Content-Disposition": `attachment; filename="kit-${still}-${channel.id}-${theme}.${ext}"`,
+        "Content-Disposition": `attachment; filename="kit-${channel.id}.${ext}"`,
         "Cache-Control": "no-store",
       },
     });

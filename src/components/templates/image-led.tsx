@@ -10,6 +10,7 @@ import { fitSize, plate } from "@/components/primitives";
 
 export interface TemplateData {
   img: string;
+  logo?: string;
   event?: string;
   title: string;
   subtitle?: string;
@@ -17,7 +18,7 @@ export interface TemplateData {
 }
 
 export function ImageLed({ data, style }: { data: TemplateData; style: ResolvedStyle }) {
-  const { img, event, title, subtitle, date } = data;
+  const { img, logo, event, title, subtitle, date } = data;
   const caseClass = style.titleCase === "upper" ? "uppercase" : "normal-case";
 
   const chip =
@@ -41,15 +42,17 @@ export function ImageLed({ data, style }: { data: TemplateData; style: ResolvedS
         <span aria-hidden className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-base/70 to-transparent" />
       </div>
 
-      {/* Event kicker, top-left */}
-      {event && (
+      {/* Event logo or name, top-left */}
+      {(logo || event) && (
         <div className="relative z-10 p-[5cqmin]">
-          <span
-            className="font-mono uppercase leading-none tracking-[0.2em] text-bone"
-            style={{ fontSize: "2.3cqmin" }}
-          >
-            {event}
-          </span>
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt={event ?? ""} style={{ height: "9cqmin", width: "auto", objectFit: "contain" }} />
+          ) : (
+            <span className="font-mono uppercase leading-none tracking-[0.2em] text-bone" style={{ fontSize: "2.3cqmin" }}>
+              {event}
+            </span>
+          )}
         </div>
       )}
 

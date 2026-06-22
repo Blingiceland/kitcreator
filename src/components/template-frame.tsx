@@ -5,7 +5,7 @@
  * luminance so grain blends correctly on light vs dark palettes.
  */
 import * as React from "react";
-import type { ChannelDef, ResolvedStyle } from "@/lib/kit";
+import type { ChannelDef, ResolvedStyle, SponsorItem } from "@/lib/kit";
 import { luminance } from "@/lib/colors";
 import { Filters, Grain, Halftone } from "@/components/primitives";
 import { SponsorTop, SponsorBottom } from "@/components/sponsors";
@@ -18,7 +18,7 @@ export function TemplateFrame({
 }: {
   channel: ChannelDef;
   style: ResolvedStyle;
-  sponsors: string[];
+  sponsors: SponsorItem[];
   children: React.ReactNode;
 }) {
   const p = style.palette;
