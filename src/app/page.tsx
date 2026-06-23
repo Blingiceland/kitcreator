@@ -18,8 +18,7 @@ import {
 } from "@/lib/kit";
 import { tripletToHex, hexToTriplet } from "@/lib/colors";
 import { TemplateFrame } from "@/components/template-frame";
-import { ImageLed } from "@/components/templates/image-led";
-import { TypoLed } from "@/components/templates/typo-led";
+import { getTemplateComponent } from "@/components/templates/registry";
 
 const STEPS = ["Viðburður", "Mynd", "Litir", "Letur", "Lógó & sponsorar", "Klárt"];
 
@@ -68,7 +67,7 @@ export default function Wizard() {
 
   const style = buildStyle({ colors, fonts, texture, boxStyle, titleCase });
   const data = { img, imgPos, logo, event, title, subtitle, date };
-  const Template = templateId === "typo-led" ? TypoLed : ImageLed;
+  const Template = getTemplateComponent(templateId);
 
   function downloadUrl(channel: ChannelDef, ext: "png" | "jpeg" | "pdf") {
     const p = new URLSearchParams({

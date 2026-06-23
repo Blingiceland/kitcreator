@@ -203,12 +203,13 @@ export function seedColors(presetId: string, theme: "light" | "dark"): BrandColo
   return { base: pal.base, ink: pal.ink, accent: pal.accent, accent2: pal.accent2 };
 }
 
-export const TEMPLATES = ["image-led", "typo-led"] as const;
+export const TEMPLATES = ["image-led", "typo-led", "split"] as const;
 export type TemplateId = (typeof TEMPLATES)[number];
 
 export const TEMPLATE_LABELS: Record<TemplateId, string> = {
   "image-led": "Mynd-þung",
   "typo-led": "Týpó-þung",
+  split: "Split",
 };
 
 export function getChannel(id: string | undefined): ChannelDef | undefined {
