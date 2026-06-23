@@ -10,6 +10,7 @@ import { fitSize, plate } from "@/components/primitives";
 
 export interface TemplateData {
   img: string;
+  imgPos?: string;
   logo?: string;
   event?: string;
   title: string;
@@ -18,7 +19,7 @@ export interface TemplateData {
 }
 
 export function ImageLed({ data, style }: { data: TemplateData; style: ResolvedStyle }) {
-  const { img, logo, event, title, subtitle, date } = data;
+  const { img, imgPos, logo, event, title, subtitle, date } = data;
   const caseClass = style.titleCase === "upper" ? "uppercase" : "normal-case";
 
   const chip =
@@ -34,7 +35,7 @@ export function ImageLed({ data, style }: { data: TemplateData; style: ResolvedS
       <div className="absolute inset-0">
         {img ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={img} alt="" className="h-full w-full object-cover" />
+          <img src={img} alt="" className="h-full w-full object-cover" style={{ objectPosition: imgPos || "center" }} />
         ) : (
           <div className="h-full w-full bg-base-card" />
         )}

@@ -6,16 +6,20 @@ import {
   CHANNELS,
   FONTS,
   DEFAULT_LOOK,
+  TEMPLATES,
+  TEMPLATE_LABELS,
   buildStyle,
   type ChannelDef,
   type BrandColors,
   type SponsorItem,
   type TextureKind,
   type BoxStyle,
+  type TemplateId,
 } from "@/lib/kit";
 import { tripletToHex, hexToTriplet } from "@/lib/colors";
 import { TemplateFrame } from "@/components/template-frame";
 import { ImageLed } from "@/components/templates/image-led";
+import { TypoLed } from "@/components/templates/typo-led";
 
 const STEPS = ["Viðburður", "Mynd", "Litir", "Letur", "Lógó & sponsorar", "Klárt"];
 
@@ -46,6 +50,7 @@ export default function Wizard() {
 
   // assets
   const [img, setImg] = React.useState("");
+  const [imgPos, setImgPos] = React.useState("50% 50%");
   const [logo, setLogo] = React.useState("");
   const [sponsors, setSponsors] = React.useState<SponsorItem[]>([]);
   const [sponsorName, setSponsorName] = React.useState("");
@@ -57,15 +62,17 @@ export default function Wizard() {
   const [boxStyle, setBoxStyle] = React.useState<BoxStyle>(DEFAULT_LOOK.boxStyle);
   const [titleCase, setTitleCase] = React.useState<"upper" | "normal">(DEFAULT_LOOK.titleCase);
 
+  const [templateId, setTemplateId] = React.useState<TemplateId>("image-led");
   const [previewId, setPreviewId] = React.useState(CHANNELS[0].id);
   const previewChannel = CHANNELS.find((c) => c.id === previewId) ?? CHANNELS[0];
 
   const style = buildStyle({ colors, fonts, texture, boxStyle, titleCase });
-  const data = { img, logo, event, title, subtitle, date };
+  const data = { img, imgPos, logo, event, title, subtitle, date };
+  const Template = templateId === "typo-led" ? TypoLed : ImageLed;
 
   function downloadUrl(channel: ChannelDef, ext: "png" | "jpeg" | "pdf") {
     const p = new URLSearchParams({
-      template: "image-led",
+      template: templateId,
       channel: channel.id,
       ext,
       base: colors.base, ink: colors.ink, accent: colors.accent, accent2: colors.accent2,
@@ -76,10 +83,27 @@ export default function Wizard() {
     if (title) p.set("title", title);
     if (subtitle) p.set("subtitle", subtitle);
     if (date) p.set("date", date);
-    if (img) p.set("img", img);
+    if (img) { p.set("img", img); p.set("pos", imgPos); }
     if (logo) p.set("logo", logo);
     if (sponsors.length) p.set("sponsors", JSON.stringify(sponsors));
     return `/api/render?${p.toString()}`;
+  }
+
+  function zipUrl() {
+    const p = new URLSearchParams({
+      template: templateId,
+      base: colors.base, ink: colors.ink, accent: colors.accent, accent2: colors.accent2,
+      fdisp: fonts.display, fbody: fonts.body,
+      tex: texture, box: boxStyle, case: titleCase,
+    });
+    if (event) p.set("event", event);
+    if (title) p.set("title", title);
+    if (subtitle) p.set("subtitle", subtitle);
+    if (date) p.set("date", date);
+    if (img) { p.set("img", img); p.set("pos", imgPos); }
+    if (logo) p.set("logo", logo);
+    if (sponsors.length) p.set("sponsors", JSON.stringify(sponsors));
+    return `/api/kit?${p.toString()}`;
   }
 
   return (
@@ -121,9 +145,20 @@ export default function Wizard() {
 
           {step === 1 && (
             <Panel title="Aðalmynd">
-              <ImageUpload label="Veldu mynd" value={img} onChange={setImg} />
+              <ImageUpload label="Veldu mynd" value={img} onChange={(u) => { setImg(u); setImgPos("50% 50%"); }} />
+              {img && (
+                <div>
+                  <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.3em] text-accent">
+                    Fókuspunktur — smelltu þar sem á að halda í ramma
+                  </p>
+                  <FocalPicker src={img} pos={imgPos} onChange={setImgPos} />
+                  <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-bone-faint">
+                    Snið hafa ólík hlutföll — fókuspunkturinn ræður hvað helst í ramma þegar klippt er.
+                  </p>
+                </div>
+              )}
               <p className="font-mono text-[11px] leading-relaxed text-bone-faint">
-                Myndin fyllir út í allt settið. Hægt að sleppa — þá kemur hlutlaus bakgrunnur.
+                Stór, frekar miðjuð mynd virkar best (helst ≥2000px). Hægt að sleppa — þá kemur hlutlaus bakgrunnur.
               </p>
             </Panel>
           )}
@@ -223,6 +258,15 @@ export default function Wizard() {
 
           {step === 5 && (
             <Panel title="Klárt — sæktu settið">
+              <a
+                href={zipUrl()}
+                className="inline-flex items-center gap-2 self-start border-2 border-accent bg-accent px-5 py-3 font-display text-sm uppercase tracking-wide text-[color:rgb(var(--c-base))]"
+              >
+                <Download size={16} /> Sækja allt settið (ZIP)
+              </a>
+              <p className="font-mono text-[11px] text-bone-faint">
+                Öll snið í einum ZIP (PNG). Tekur ~20–40s (rendrar hvert snið).
+              </p>
               <div className="overflow-hidden border-2 border-bone">
                 {CHANNELS.map((c, i) => (
                   <div key={c.id} className={"flex flex-wrap items-center justify-between gap-3 px-4 py-3 " + (i % 2 ? "bg-base-card" : "")}>
@@ -271,10 +315,22 @@ export default function Wizard() {
 
         {/* Persistent preview */}
         <div className="flex flex-col items-center gap-3 lg:items-end">
+          <div className="flex max-w-[340px] flex-wrap gap-1.5 self-start lg:self-end">
+            {TEMPLATES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTemplateId(t)}
+                className={"border-2 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors " + (templateId === t ? "border-accent bg-accent text-[color:rgb(var(--c-base))]" : "border-bone text-bone")}
+              >
+                {TEMPLATE_LABELS[t]}
+              </button>
+            ))}
+          </div>
           <div className="shrink-0 border-2 border-bone" style={{ width: 340, height: (340 / previewChannel.w) * previewChannel.h }}>
             <div style={{ width: previewChannel.w, height: previewChannel.h, transform: `scale(${340 / previewChannel.w})`, transformOrigin: "top left" }}>
               <TemplateFrame channel={previewChannel} style={style} sponsors={sponsors}>
-                <ImageLed data={data} style={style} />
+                <Template data={data} style={style} />
               </TemplateFrame>
             </div>
           </div>
@@ -361,6 +417,27 @@ function FontSelect({ label, value, onChange }: { label: string; value: string; 
         ))}
       </select>
       <p className="mt-2 text-2xl text-bone" style={{ fontFamily: `'${value}'` }}>Aa Bb Cc 123</p>
+    </div>
+  );
+}
+
+function FocalPicker({ src, pos, onChange }: { src: string; pos: string; onChange: (p: string) => void }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  function click(e: React.MouseEvent) {
+    const r = ref.current!.getBoundingClientRect();
+    const x = Math.round(Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100)));
+    const y = Math.round(Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100)));
+    onChange(`${x}% ${y}%`);
+  }
+  const [px, py] = pos.split(" ");
+  return (
+    <div ref={ref} onClick={click} className="relative w-64 cursor-crosshair overflow-hidden border-2 border-bone">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" className="block w-full select-none" draggable={false} />
+      <span
+        className="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-accent/30"
+        style={{ left: px, top: py }}
+      />
     </div>
   );
 }

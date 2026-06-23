@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   // Forward the content + style fields to the bare render page.
   const params = new URLSearchParams({ channel: channel.id });
   for (const k of [
-    "title", "subtitle", "date", "img", "logo", "event", "sponsors",
+    "title", "subtitle", "date", "img", "pos", "logo", "event", "sponsors",
     "base", "ink", "accent", "accent2", "fdisp", "fbody", "tex", "box", "case",
   ] as const) {
     const v = url.searchParams.get(k);

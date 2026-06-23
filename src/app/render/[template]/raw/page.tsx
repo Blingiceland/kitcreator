@@ -12,6 +12,7 @@ import {
 } from "@/lib/kit";
 import { TemplateFrame } from "@/components/template-frame";
 import { ImageLed, type TemplateData } from "@/components/templates/image-led";
+import { TypoLed } from "@/components/templates/typo-led";
 
 type Search = Record<string, string | undefined>;
 
@@ -59,6 +60,7 @@ export default function RawRenderPage({
 
   const data: TemplateData = {
     img: searchParams.img || "",
+    imgPos: searchParams.pos,
     logo: searchParams.logo,
     event: searchParams.event,
     title: searchParams.title ?? "",
@@ -71,7 +73,7 @@ export default function RawRenderPage({
       <style>{`body{margin:0!important;overflow:hidden!important;background:transparent!important}`}</style>
       <div style={{ width: channel.w, height: channel.h }}>
         <TemplateFrame channel={channel} style={style} sponsors={parseSponsors(searchParams.sponsors)}>
-          <ImageLed data={data} style={style} />
+          {params.template === "typo-led" ? <TypoLed data={data} style={style} /> : <ImageLed data={data} style={style} />}
         </TemplateFrame>
       </div>
     </>
